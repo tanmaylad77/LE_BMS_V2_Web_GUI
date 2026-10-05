@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LE BMS Central V2 Bring-up</title>
+    <link rel="icon" type="image/png" href="/static/le_logo.png" />
+    <link rel="apple-touch-icon" href="/static/le_logo.png" />
+    <link rel="stylesheet" href="/static/styles.css?v=6" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div class="brand">
+          <img src="/static/le_logo.png" alt="Libre Energy" />
+          <div>
+            <h1>Central V2</h1>
+          </div>
+        </div>
+        <nav class="page-nav" aria-label="Dashboard pages">
+          <button class="nav-button active" type="button" data-page-target="dashboard">Dashboard</button>
+          <button class="nav-button" type="button" data-page-target="telemetry">Telemetry</button>
+          <button class="nav-button" type="button" data-page-target="debug">Debug</button>
+        </nav>
+        <div class="top-actions">
+          <label class="theme-toggle">
+            <input id="themeToggle" type="checkbox" />
+            <span>Dark</span>
+          </label>
+          <div id="connectionBadge" class="badge bad">Disconnected</div>
+        </div>
+      </header>
+
+      <section class="system-strip">
+        <div class="strip-item"><span>Boot</span><strong id="bootChip">--</strong></div>
+        <div class="strip-item"><span>SoC Trust</span><strong id="svalChip">--</strong></div>
+        <div class="strip-item"><span>Last RX</span><strong id="rxChip">--</strong></div>
+        <div class="strip-item wide"><span>Info</span><strong id="infoChip">Waiting for telemetry</strong></div>
+      </section>
+
+      <section id="page-dashboard" class="page active">
+        <section class="dashboard-shell">
+          <section class="panel pack-hero">
+            <div class="pack-title">
+              <h2>Pack</h2>
+              <span id="STAT" class="pill">--</span>
+            </div>
+            <div class="soc-ring large" id="socRing">
+              <div>
+                <span>SoC</span>
+                <strong id="PSOC_RING">--</strong>
+              </div>
+            </div>
+            <div class="metric-grid primary">
+              <div><span>Voltage</span><strong id="VPCK">--</strong></div>
+              <div><span>Current</span><strong id="IPCK">--</strong></div>
+              <div><span>Power</span><strong id="WPCK">--</strong></div>
+              <div><span>SoC</span><strong id="PSOC">--</strong></div>
+              <div><span>Remaining</span><strong id="RCAP">--</strong></div>
+            </div>
+          </section>
+
+          <section class="panel cell-summary">
+            <div class="panel-head">
+              <h2>Cells</h2>
+              <span id="cellExtremes" class="muted">--</span>
+            </div>
+            <div class="cell-extremes">
+              <div class="stat-line"><span>Min VCELL</span><strong id="VCLV">--</strong><em id="VCLN">--</em></div>
+              <div class="stat-line"><span>Max VCELL</span><strong id="VCHV">--</strong><em id="VCHN">--</em></div>
+              <div class="stat-line"><span>Min TCELL</span><strong id="TCLT">--</strong><em id="TCLN">--</em></div>
+              <div class="stat-line"><span>Max TCELL</span><strong id="TCHT">--</strong><em id="TCHN">--</em></div>
+            </div>
+          </section>
+
+          <section class="panel health-summary">
+            <div class="panel-head">
+              <h2>Limits</h2>
+              <span class="muted">lockouts and targets</span>
+            </div>
+            <div class="target-grid">
+              <div><span>DCHG Target</span><strong id="DCLA">--</strong></div>
+              <div><span>CHRG Target</span><strong id="CCLA">--</strong></div>
+            </div>
+            <div class="lockout-list">
+              <div><span>Voltage Lock</span><strong id="VLCK">--</strong></div>
+              <div><span>Current Lock</span><strong id="ICLK">--</strong></div>
+              <div><span>Temp. Lock</span><strong id="TLCK">--</strong></div>
+            </div>
+          </section>
+
+          <section class="panel node-summary">
+            <div class="panel-head">
+              <h2>B-node Ordering</h2>
+              <span id="captureStatus" class="pill">--</span>
+            </div>
+            <div class="mini-stats">
+              <div><span>Captured</span><strong id="capturedCount">--</strong></div>
+              <div><span>Live</span><strong id="liveCount">--</strong></div>
+              <div><span>Temp</span><strong id="tempFrames">--</strong></div>
+              <div><span>Volt</span><strong id="voltFrames">--</strong></div>
+            </div>
+          </section>
+        </section>
+      </section>
+
+      <section id="page-telemetry" class="page">
+        <section class="telemetry-grid">
+          <section class="panel chart-panel voltage-panel">
+            <div class="panel-head">
+              <h2>Cell Voltages</h2>
+              <span id="voltageAge" class="age-chip">--</span>
+            </div>
+            <div class="chart-box">
+              <canvas id="voltageChart" width="920" height="260"></canvas>
+            </div>
+          </section>
+
+          <section class="panel chart-panel current-panel">
+            <div class="panel-head">
+              <h2>Shunt Currents</h2>
+              <span id="currentAge" class="age-chip">--</span>
+            </div>
+            <div class="chart-box">
+              <canvas id="currentChart" width="560" height="260"></canvas>
+            </div>
+          </section>
+
+          <section class="panel chart-panel heatmap-panel">
+            <div class="panel-head">
+              <h2>Cell Temperatures</h2>
+              <span id="tempAge" class="age-chip">--</span>
+            </div>
+            <div class="chart-box heatmap-box">
+              <canvas id="tempHeatmap" width="1120" height="520"></canvas>
+              <div id="heatTooltip" class="heat-tooltip" hidden></div>
+              <div class="temp-legend">
+                <span>-50 C</span>
+                <span class="temp-scale-bar" aria-hidden="true"></span>
+                <span>50 C</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel order-panel">
+            <div class="panel-head">
+              <h2>Physical Order</h2>
+              <span class="muted">slot to B-node address</span>
+            </div>
+            <div id="bOrder" class="order"></div>
+          </section>
+        </section>
+      </section>
+
+      <section id="page-debug" class="page">
+        <section class="debug-grid">
+          <section class="panel connection">
+            <div class="panel-head">
+              <h2>Serial Port</h2>
+              <button id="refreshPorts" type="button" class="secondary">Scan</button>
+            </div>
+            <select id="portSelect"></select>
+            <input id="manualPort" placeholder="COM9" autocomplete="off" />
+            <div class="split-buttons">
+              <button id="connect" type="button">Connect</button>
+              <button id="disconnect" type="button" class="secondary">Disconnect</button>
+            </div>
+            <div class="status-lines">
+              <span id="portStatus">No port selected</span>
+              <span id="lastLine">No telemetry yet</span>
+            </div>
+          </section>
+
+          <section class="panel bnode-panel">
+            <div class="panel-head">
+              <h2>B-node Commands</h2>
+              <span class="muted">capture controls</span>
+            </div>
+            <div class="button-grid">
+              <button data-action="start_capture" type="button">Start</button>
+              <button data-action="stop_capture" type="button" class="secondary">Stop</button>
+              <button data-action="clear_order" type="button" class="danger">Clear</button>
+              <button data-action="get_order" type="button" class="secondary">Order</button>
+              <button data-action="get_debug" type="button" class="secondary">Debug</button>
+            </div>
+            <div class="debug-line">
+              <span>Live nodes</span>
+              <strong id="liveNodes">--</strong>
+            </div>
+          </section>
+
+          <section class="panel raw-panel">
+            <div class="panel-head">
+              <h2>Serial Log</h2>
+              <button id="clearLog" type="button" class="secondary">Clear</button>
+            </div>
+            <div id="rawLog" class="raw-log"></div>
+            <form id="commandForm" class="command-form">
+              <input id="commandInput" placeholder="GET+BDBG" autocomplete="off" />
+              <button type="submit">Send</button>
+            </form>
+            <p id="commandError" class="error-text"></p>
+          </section>
+        </section>
+      </section>
+    </main>
+    <script src="/static/app.js?v=6"></script>
+  </body>
+</html>
